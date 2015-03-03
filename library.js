@@ -1,42 +1,53 @@
 (function(module) {
-  "use strict";
+  'use strict';
 
-  var User = module.parent.require('./user'),
+  var user = module.parent.require('./user'),
     db = module.parent.require('../src/database'),
-    meta = module.parent.require('./meta'),
+    winston = module.parent.require('winston'),
+    async = module.parent.require('async'),
+    nconf = module.parent.require('nconf'),
     passport = module.parent.require('passport'),
-    Strategy = require('passport-appc').Strategy,
-    fs = module.parent.require('fs'),
-    path = module.parent.require('path'),
-    winston = module.parent.require('winston');
+    Strategy = require('passport-appc').Strategy;
 
   var Plugin = {};
 
   Plugin.getStrategy = function(strategies, callback) {
 
-    passport.use(new Strategy(function verify(session, done) {
-      Plugin.login(session.user, function(err, user) {
+    passport.use(new Strategy({
+      callbackURL: nconf.get('url') + '/auth/appc/callback',
+      requireCallbackURL: true
+
+    }, function verify(session, done) {
+
+      Plugin.login(session, function(err, user) {
+
         if (err) {
           return done(err);
         }
+
         done(null, user);
+
       });
+
     }));
 
     strategies.push({
       name: 'appc',
       url: '/auth/appc',
       callbackURL: '/auth/appc/callback',
-      icon: 'fa-key'
+      icon: 'fa-key',
+      scope: ''
     });
 
     callback(null, strategies);
   };
 
-  Plugin.login = function(user, callback) {
-    var appcID = user.user_id;
-    var email = user.email;
-    var username = user.user_id;
+  Plugin.login = function(session, callback) {
+    var appcID = session.user.user_id;
+    var email = session.user.email;
+
+    // must pass utils.isUserNameValid (https://github.com/NodeBB/NodeBB/blob/master/public/src/utils.js#L102)
+    var username = (session.user.github || session.user.twitter || session.user.skype || session.user['irc-nickname'] || session.user.firstmame || session.username).replace(/['"\s\-.*0-9\u00BF-\u1FFF\u2C00-\uD7FF\w]+/, '');
 
     // find NodeBB user by AppC ID
     Plugin.getUidByAppcID(appcID, function(err, uid) {
@@ -55,7 +66,7 @@
 
       // link NodeBB user to AppC ID
       var success = function(uid) {
-        User.setUserField(uid, 'appcid', appcID);
+        user.setUserField(uid, 'appcid', appcID);
         db.setObjectField('appcid:uid', appcID, uid);
 
         callback(null, {
@@ -64,7 +75,7 @@
       };
 
       // find NodeBB user by AppC email
-      User.getUidByEmail(email, function(err, uid) {
+      user.getUidByEmail(email, function(err, uid) {
 
         // found NodeBB user
         if (uid) {
@@ -72,7 +83,7 @@
         }
 
         // create NodeBB user
-        User.create({
+        user.create({
           username: username,
           email: email
 
@@ -96,6 +107,21 @@
       } else {
         callback(null, uid);
       }
+    });
+  };
+
+  Plugin.deleteUserData = function(uid, callback) {
+    async.waterfall([
+      async.apply(user.getUserField, uid, 'appcid'),
+      function(appcIDToDelete, next) {
+        db.deleteObjectField('appcid:uid', appcIDToDelete, next);
+      }
+    ], function(err) {
+      if (err) {
+        winston.error('[sso-appc] Could not remove Appc data for uid ' + uid + '. Error: ' + err);
+        return callback(err);
+      }
+      callback(null, uid);
     });
   };
 
