@@ -36,7 +36,7 @@
       url: '/auth/appc',
       callbackURL: '/auth/appc/callback',
       icon: 'fa-key',
-      scope: ''
+      scope: 'user:email'
     });
 
     callback(null, strategies);
@@ -47,7 +47,7 @@
     var email = session.user.email;
 
     // must pass utils.isUserNameValid (https://github.com/NodeBB/NodeBB/blob/master/public/src/utils.js#L102)
-    var username = (session.user.github || session.user.twitter || session.user.skype || session.user['irc-nickname'] || session.user.firstmame || session.username).replace(/['"\s\-.*0-9\u00BF-\u1FFF\u2C00-\uD7FF\w]+/, '');
+    var username = (session.user.github || session.user.twitter || session.user.skype || session.user['irc-nickname'] || session.user.firstmame || session.username).replace(/[^'"\s\-.*0-9\u00BF-\u1FFF\u2C00-\uD7FF\w]+/, '');
 
     // find NodeBB user by AppC ID
     Plugin.getUidByAppcID(appcID, function(err, uid) {
@@ -58,7 +58,6 @@
 
       // found NodeBB user
       if (uid) {
-
         return callback(null, {
           uid: uid
         });
@@ -113,8 +112,15 @@
   Plugin.deleteUserData = function(uid, callback) {
     async.waterfall([
       async.apply(user.getUserField, uid, 'appcid'),
-      function(appcIDToDelete, next) {
-        db.deleteObjectField('appcid:uid', appcIDToDelete, next);
+      function(appcID, next) {
+        if (appcID) {
+          async.waterfall([
+            async.apply(db.deleteObjectField, 'user:' + uid, 'appcid'),
+            async.apply(db.deleteObjectField, 'appcid:uid', appcID)
+          ], next);
+        } else {
+          next(null);
+        }
       }
     ], function(err) {
       if (err) {
@@ -122,6 +128,26 @@
         return callback(err);
       }
       callback(null, uid);
+    });
+  };
+
+  Plugin.deleteAppcData = function(appcID, callback) {
+
+    Plugin.getUidByAppcID(appcID, function(err, uid) {
+      if (err) {
+        winston.error('[sso-appc] Could not find data to remove for AppcID ' + appcID + '. Error: ' + err);
+        return callback(err);
+      }
+      async.waterfall([
+        async.apply(db.deleteObjectField, 'user:' + uid, 'appcid'),
+        async.apply(db.deleteObjectField, 'appcid:uid', appcID)
+      ], function(err) {
+        if (err) {
+          winston.error('[sso-appc] Could not remove Appc data for AppcID ' + AppcID + '. Error: ' + err);
+          return callback(err);
+        }
+        callback(null, AppcID);
+      });
     });
   };
 
