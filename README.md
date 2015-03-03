@@ -1,6 +1,6 @@
 # NodeBB Appcelerator SSO
 
-NodeBB Plugin that allows users to login/register via their Appcelerator account.
+NodeBB Plugin that allows users to login/register via their Appcelerator account using the [AppC Passport strategy](https://github.com/FokkeZB/passport-appc).
 
 ## Pre-requisites for development
 
