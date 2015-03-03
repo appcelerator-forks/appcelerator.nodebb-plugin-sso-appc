@@ -7,6 +7,5 @@
   "hooks": [{
     "hook": "filter:auth.init",
     "method": "getStrategy"
-  }],
-  "templates": "./templates"
+  }]
 }
