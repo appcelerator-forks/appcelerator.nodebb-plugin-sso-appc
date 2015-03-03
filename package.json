@@ -8,7 +8,7 @@
   },
   "repository": {
     "type": "git",
-    "url": "https://github.com/fokkezb/nodebb-plugin-sso-appc"
+    "url": "https://github.com/appcelerator/nodebb-plugin-sso-appc"
   },
   "keywords": [
     "nodebb",
@@ -18,16 +18,20 @@
     "single sign on",
     "registration"
   ],
-  "author": {
+  "author": "Fokke Zandbergen",
+  "maintainers": [
+    "Fokke Zandbergen<fzandbergen@appcelerator.com>"
+  ],
+  "contributors": [{
     "name": "Fokke Zandbergen"
-  },
+  }],
   "license": "Appcelerator Commercial",
   "bugs": {
-    "url": "https://github.com/fokkezb/passport-appc/issues"
+    "url": "https://github.com/appcelerator/passport-appc/issues"
   },
-  "homepage": "https://github.com/fokkezb/passport-appc",
+  "homepage": "https://github.com/appcelerator/passport-appc",
   "dependencies": {
-    "passport-appc": "fokkezb/passport-appc"
+    "passport-appc": "^0.1.0"
   },
   "devDependencies": {
     "grunt": "^0.4.5",
