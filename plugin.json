@@ -1,0 +1,12 @@
+{
+  "id": "nodebb-plugin-sso-appc",
+  "name": "NodeBB Appcelerator SSO",
+  "description": "NodeBB Plugin that allows users to login/register via their Appcelerator account.",
+  "url": "https://github.com/fokkezb/nodebb-plugin-sso-appc",
+  "library": "./library.js",
+  "hooks": [{
+    "hook": "filter:auth.init",
+    "method": "getStrategy"
+  }],
+  "templates": "./templates"
+}
