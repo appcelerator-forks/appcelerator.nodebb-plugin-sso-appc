@@ -1,17 +1,30 @@
-module.exports = function(grunt) {
+module.exports = function (grunt) {
 
-  // Project configuration.
-  grunt.initConfig({
-    jshint: {
-      options: {
-        jshintrc: true
-      },
-      src: ['library.js']
-    }
-  });
+	// make sure to update this to point to your files
+	var files = ['library.js'];
 
-  // Load grunt plugins for modules
-  grunt.loadNpmTasks('grunt-contrib-jshint');
+	// Project configuration.
+	grunt.initConfig({
+		jshint: {
+			options: {
+				jshintrc: true
+			},
+			src: files
+		},
+		jscs: {
+			options: {
+				config: '.jscsrc',
+				reporter: 'inline'
 
-  grunt.registerTask('default', ['jshint']);
+			},
+			src: files
+		}
+	});
+
+	// Load grunt plugins for modules
+	grunt.loadNpmTasks('grunt-contrib-jshint');
+	grunt.loadNpmTasks('grunt-jscs');
+
+	// register tasks. You might do this under a test 'test'
+	grunt.registerTask('default', ['jshint', 'jscs']);
 };
