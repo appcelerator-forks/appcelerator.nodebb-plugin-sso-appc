@@ -30,6 +30,6 @@ NodeBB needs to run under the same primary domain as the Dashboard for SSO.
 
 1. Add the NPM package to your NodeBB install
 
-        $ npm install fokkezb/nodebb-plugin-appc --save
+        $ npm install nodebb-plugin-appc --save
 
 2. Activate the plugin via the NodeBB admin
